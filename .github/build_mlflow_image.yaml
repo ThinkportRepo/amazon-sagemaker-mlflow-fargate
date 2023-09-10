@@ -1,0 +1,50 @@
+name: CI/CD for MlOps
+
+on:
+  push:
+    paths:
+      - container/**
+  workflow_dispatch:
+
+env:
+  DEPLOYMENT_ROLE: "arn:aws:iam::562760952310:role/AWSGithubActionsRole"
+
+
+permissions:
+  contents: "read"
+  id-token: "write"
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Set up python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Set up node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+      - name: Install Python dependencies and CDK
+        run: |
+          python -m pip install --upgrade pip
+          npm install -g aws-cdk
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ env.DEPLOYMENT_ROLE }}
+          aws-region: eu-central-1
+
+  build:
+    needs: [ init ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: cdk bootstrap
+        run: cdk bootstrap
+      - name: cd deploy mlflow
+        run: cdk deploy --parameters ProjectName=mlflow --require-approval never
+        working-directory: .
+
