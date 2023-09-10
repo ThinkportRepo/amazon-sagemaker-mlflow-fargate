@@ -1,4 +1,4 @@
-name: CI/CD to destroy MlOps resource
+name: Destroy mlflow stack
 
 on:
   push:
