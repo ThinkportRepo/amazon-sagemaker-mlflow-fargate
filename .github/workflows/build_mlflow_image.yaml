@@ -15,7 +15,7 @@ permissions:
   id-token: "write"
 
 jobs:
-  init:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -39,11 +39,6 @@ jobs:
         with:
           role-to-assume: ${{ env.DEPLOYMENT_ROLE }}
           aws-region: eu-central-1
-
-  build:
-    needs: [ init ]
-    runs-on: ubuntu-latest
-    steps:
       - name: cdk bootstrap
         run: cdk bootstrap
       - name: cd deploy mlflow
