@@ -1,5 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
+import logging
 
 from aws_cdk import (
     aws_ec2 as ec2,
@@ -79,14 +80,17 @@ class MLflowStack(Stack):
             scope=self,
             id="VPC",
             ip_addresses=ec2.IpAddresses.cidr("10.0.0.0/24"),
-            max_azs=2,
             nat_gateway_provider=ec2.NatProvider.gateway(),
             nat_gateways=1,
+            availability_zones=["eu-central-1b", "eu-central-1b", "eu-central-1c"],
             subnet_configuration=[public_subnet, private_subnet, isolated_subnet],
         )
         vpc.add_gateway_endpoint(
             "S3Endpoint", service=ec2.GatewayVpcEndpointAwsService.S3
         )
+
+        print("########################################## AZs")
+        print(vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, one_per_az=True).availability_zones)
         # ==================================================
         # ================= S3 BUCKET ======================
         # ==================================================
