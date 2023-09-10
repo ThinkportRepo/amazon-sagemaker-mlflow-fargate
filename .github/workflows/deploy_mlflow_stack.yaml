@@ -39,9 +39,12 @@ jobs:
         with:
           role-to-assume: ${{ env.DEPLOYMENT_ROLE }}
           aws-region: eu-central-1
-      - name: cdk bootstrap
-        run: cdk bootstrap
-      - name: cd deploy mlflow
+      - name: cdk bootstrap mlflow stack
+        run: |
+            echo "ACCOUNT_ID=$(aws sts get-caller-identity --query Account | tr -d '"')" >> $GITHUB_ENV
+            echo "AWS_REGION=$(aws configure get region)" >> $GITHUB_ENV
+            cdk bootstrap aws://${ACCOUNT_ID}/${AWS_REGION}
+      - name: cdk deploy mlflow stack
         run: cdk deploy --parameters ProjectName=mlflow --require-approval never
         working-directory: .
 
