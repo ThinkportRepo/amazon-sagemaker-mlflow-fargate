@@ -82,7 +82,7 @@ class MLflowStack(Stack):
             ip_addresses=ec2.IpAddresses.cidr("10.0.0.0/24"),
             nat_gateway_provider=ec2.NatProvider.gateway(),
             nat_gateways=1,
-            availability_zones=["eu-central-1a", "eu-central-1b", "eu-central-1c"],
+            availability_zones=["eu-central-1a"],
             subnet_configuration=[public_subnet, private_subnet, isolated_subnet],
         )
         vpc.add_gateway_endpoint(
