@@ -104,7 +104,7 @@ class MLflowStack(Stack):
         # )
 
         print("########################################## AZs")
-        print(vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, one_per_az=True).availability_zones)
+        # print(vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, one_per_az=True).availability_zones)
         # ==================================================
         # ================= S3 BUCKET ======================
         # ==================================================
