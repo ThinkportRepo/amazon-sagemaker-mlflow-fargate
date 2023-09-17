@@ -103,10 +103,6 @@ class MLflowStack(Stack):
         #     subnet_configuration=[public_subnet, private_subnet, isolated_subnet],
         # )
 
-        vpc.add_gateway_endpoint(
-            "S3Endpoint", service=ec2.GatewayVpcEndpointAwsService.S3
-        )
-
         print("########################################## AZs")
         print(vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, one_per_az=True).availability_zones)
         # ==================================================
