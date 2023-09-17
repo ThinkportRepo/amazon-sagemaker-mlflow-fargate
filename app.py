@@ -16,7 +16,7 @@ from aws_cdk import (
     CfnOutput,
     Aws,
     RemovalPolicy,
-    Duration,
+    Duration, Environment,
 )
 from constructs import Construct
 
@@ -219,6 +219,7 @@ class MLflowStack(Stack):
         )
 
 
+env_EU = Environment(account="562760952310", region="eu-central-1")
 app = App()
-MLflowStack(app, "MLflowStack")
+MLflowStack(app, "MLflowStack", env=env_EU)
 app.synth()
