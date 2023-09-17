@@ -66,25 +66,42 @@ class MLflowStack(Stack):
         # ==================================================
         # ==================== VPC =========================
         # ==================================================
-        public_subnet = ec2.SubnetConfiguration(
-            name="Public", subnet_type=ec2.SubnetType.PUBLIC, cidr_mask=28
-        )
-        private_subnet = ec2.SubnetConfiguration(
-            name="Private", subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, cidr_mask=28
-        )
-        isolated_subnet = ec2.SubnetConfiguration(
-            name="DB", subnet_type=ec2.SubnetType.PRIVATE_ISOLATED, cidr_mask=28
-        )
+        # public_subnet = ec2.SubnetConfiguration(
+        #     name="Public", subnet_type=ec2.SubnetType.PUBLIC, cidr_mask=28
+        # )
+        # private_subnet = ec2.SubnetConfiguration(
+        #     name="Private", subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, cidr_mask=28
+        # )
+        # isolated_subnet = ec2.SubnetConfiguration(
+        #     name="DB", subnet_type=ec2.SubnetType.PRIVATE_ISOLATED, cidr_mask=28
+        # )
 
-        vpc = ec2.Vpc(
-            scope=self,
-            id="vpc-09b84ce984e473d67",
-            ip_addresses=ec2.IpAddresses.cidr("10.0.0.0/24"),
-            nat_gateway_provider=ec2.NatProvider.gateway(),
-            nat_gateways=1,
-            availability_zones=["eu-central-1a", "eu-central-1b"],
-            subnet_configuration=[public_subnet, private_subnet, isolated_subnet],
-        )
+        # lookup existing vpc by id
+        vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id="vpc-09b84ce984e473d67")
+        pub_subnet = ec2.Subnet(
+            self, "Public", availability_zone=super().availability_zones[0], cidr_block="10.0.0.0/28",
+            vpc_id=vpc.vpc_id, map_public_ip_on_launch=True)
+        private_subnet = ec2.Subnet(
+            self, "Private", availability_zone=super().availability_zones[0], cidr_block="10.0.0.16/28",
+            vpc_id=vpc.vpc_id, map_public_ip_on_launch=False)
+        isolated_subnet = ec2.Subnet(
+            self, "DB", availability_zone=super().availability_zones[0], cidr_block="10.0.0.32/28",
+            vpc_id=vpc.vpc_id, map_public_ip_on_launch=False)
+
+        # append three subnets
+        vpc.public_subnets.append(pub_subnet)
+        vpc.private_subnets.append(private_subnet)
+        vpc.isolated_subnets.append(isolated_subnet)
+
+        # vpc = ec2.Vpc(
+        #     scope=self,
+        #     id="vpc-09b84ce984e473d67",
+        #     ip_addresses=ec2.IpAddresses.cidr("10.0.0.0/24"),
+        #     nat_gateway_provider=ec2.NatProvider.gateway(),
+        #     nat_gateways=1,
+        #     availability_zones=["eu-central-1a", "eu-central-1b"],
+        #     subnet_configuration=[public_subnet, private_subnet, isolated_subnet],
+        # )
 
         vpc.add_gateway_endpoint(
             "S3Endpoint", service=ec2.GatewayVpcEndpointAwsService.S3
