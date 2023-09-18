@@ -16,7 +16,7 @@ from aws_cdk import (
     CfnOutput,
     Aws,
     RemovalPolicy,
-    Duration, Environment,
+    Duration,
 )
 from constructs import Construct
 
@@ -32,7 +32,6 @@ class MLflowStack(Stack):
         port = 3306
         username = "master"
         bucket_name = f"{project_name_param.value_as_string}-artifacts-{Aws.ACCOUNT_ID}"
-        container_repo_name = "mlflow-containers"
         cluster_name = "mlflow"
         service_name = "mlflow"
 
@@ -66,45 +65,32 @@ class MLflowStack(Stack):
         # ==================================================
         # ==================== VPC =========================
         # ==================================================
-        # public_subnet = ec2.SubnetConfiguration(
-        #     name="Public", subnet_type=ec2.SubnetType.PUBLIC, cidr_mask=28
-        # )
-        # private_subnet = ec2.SubnetConfiguration(
-        #     name="Private", subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, cidr_mask=28
-        # )
-        # isolated_subnet = ec2.SubnetConfiguration(
-        #     name="DB", subnet_type=ec2.SubnetType.PRIVATE_ISOLATED, cidr_mask=28
-        # )
+        public_subnet = ec2.SubnetConfiguration(
+            name="Public", subnet_type=ec2.SubnetType.PUBLIC, cidr_mask=28
+        )
+        private_subnet = ec2.SubnetConfiguration(
+            name="Private", subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, cidr_mask=28
+        )
+        isolated_subnet = ec2.SubnetConfiguration(
+            name="DB", subnet_type=ec2.SubnetType.PRIVATE_ISOLATED, cidr_mask=28
+        )
 
-        # lookup existing vpc by id
-        vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id="vpc-09b84ce984e473d67")
-        pub_subnet = ec2.Subnet(
-            self, "Public", availability_zone=super().availability_zones[0], cidr_block="10.0.0.0/28",
-            vpc_id=vpc.vpc_id, map_public_ip_on_launch=True)
-        private_subnet = ec2.Subnet(
-            self, "Private", availability_zone=super().availability_zones[0], cidr_block="10.0.0.16/28",
-            vpc_id=vpc.vpc_id, map_public_ip_on_launch=False)
-        isolated_subnet = ec2.Subnet(
-            self, "DB", availability_zone=super().availability_zones[0], cidr_block="10.0.0.32/28",
-            vpc_id=vpc.vpc_id, map_public_ip_on_launch=False)
+        vpc = ec2.Vpc(
+            scope=self,
+            id="vpc-09b84ce984e473d67",
+            ip_addresses=ec2.IpAddresses.cidr("10.0.0.0/24"),
+            nat_gateway_provider=ec2.NatProvider.gateway(),
+            nat_gateways=1,
+            availability_zones=["eu-central-1a", "eu-central-1b"],
+            subnet_configuration=[public_subnet, private_subnet, isolated_subnet],
+        )
 
-        # append three subnets
-        vpc.public_subnets.append(pub_subnet)
-        vpc.private_subnets.append(private_subnet)
-        vpc.isolated_subnets.append(isolated_subnet)
-
-        # vpc = ec2.Vpc(
-        #     scope=self,
-        #     id="vpc-09b84ce984e473d67",
-        #     ip_addresses=ec2.IpAddresses.cidr("10.0.0.0/24"),
-        #     nat_gateway_provider=ec2.NatProvider.gateway(),
-        #     nat_gateways=1,
-        #     availability_zones=["eu-central-1a", "eu-central-1b"],
-        #     subnet_configuration=[public_subnet, private_subnet, isolated_subnet],
-        # )
+        vpc.add_gateway_endpoint(
+            "S3Endpoint", service=ec2.GatewayVpcEndpointAwsService.S3
+        )
 
         print("########################################## AZs")
-        # print(vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, one_per_az=True).availability_zones)
+        print(vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, one_per_az=True).availability_zones)
         # ==================================================
         # ================= S3 BUCKET ======================
         # ==================================================
@@ -215,7 +201,6 @@ class MLflowStack(Stack):
         )
 
 
-env_EU = Environment(account="562760952310", region="eu-central-1")
 app = App()
-MLflowStack(app, "MLflowStack", env=env_EU)
+MLflowStack(app, "MLflowStack")
 app.synth()
