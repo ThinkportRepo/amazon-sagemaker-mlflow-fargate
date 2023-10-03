@@ -77,8 +77,7 @@ class MLflowStack(Stack):
 
         vpc = ec2.Vpc(
             scope=self,
-            id="vpc-09b84ce984e473d67",
-            ip_addresses=ec2.IpAddresses.cidr("10.0.0.0/24"),
+            ip_addresses= IpAddresses.cidr("10.0.0.0/24"),
             nat_gateway_provider=ec2.NatProvider.gateway(),
             nat_gateways=1,
             availability_zones=["eu-central-1a", "eu-central-1b"],

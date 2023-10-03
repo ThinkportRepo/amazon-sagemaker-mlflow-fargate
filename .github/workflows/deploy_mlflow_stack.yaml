@@ -44,6 +44,6 @@ jobs:
       - name: cdk bootstrap mlflow stack
         run: cdk bootstrap aws://${ACCOUNT_ID}/${AWS_REGION}
       - name: cdk deploy mlflow stack
-        run: cdk deploy --parameters ProjectName=mlflow --require-approval never
+        run: cdk deploy --no-confirm-changeset --no-fail-on-empty-changeset --parameters ProjectName=mlflow --require-approval never
         working-directory: .
 
